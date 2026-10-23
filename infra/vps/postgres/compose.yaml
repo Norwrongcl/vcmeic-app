@@ -1,0 +1,53 @@
+name: vcm-services
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:?Run install.sh first}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vcm
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - backend
+    command:
+      - postgres
+      - -c
+      - max_connections=40
+      - -c
+      - shared_buffers=128MB
+      - -c
+      - password_encryption=scram-sha-256
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres -d vcm']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    mem_limit: 1g
+    cpus: 0.75
+    shm_size: 128m
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password
+
+volumes:
+  postgres_data:
+
+networks:
+  backend:
+    name: vcm_backend
+    internal: true

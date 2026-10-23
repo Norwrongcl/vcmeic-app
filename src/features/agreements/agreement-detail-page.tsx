@@ -21,6 +21,8 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { useAppStore } from '@/features/core/model/app-store'
 import { getAgreementTemporalStatus } from '@/features/core/model/selectors'
+import { useDemoRole } from '@/features/vcm/model/use-vcm'
+import { canOperate } from '@/features/vcm/model/workflow'
 
 const statusLabels = {
   upcoming: 'Próximo',
@@ -31,6 +33,7 @@ const statusLabels = {
 
 export function AgreementDetailPage({ agreementId }: { agreementId: string }) {
   const navigate = useNavigate()
+  const writable = canOperate(useDemoRole((s) => s.role))
   const agreement = useAppStore((state) => state.agreements[agreementId])
   const partners = useAppStore((state) => state.partners)
   const contacts = useAppStore((state) => state.contacts)
@@ -98,7 +101,7 @@ export function AgreementDetailPage({ agreementId }: { agreementId: string }) {
               {agreement.description || agreement.type || 'Sin descripción'}
             </p>
           </div>
-          <div className='flex gap-2'>
+          <div className={writable ? 'flex gap-2' : 'hidden'}>
             <Button asChild variant='outline'>
               <Link to='/agreements/$agreementId/edit' params={{ agreementId }}>
                 <Pencil data-icon='inline-start' /> Editar
@@ -173,7 +176,12 @@ export function AgreementDetailPage({ agreementId }: { agreementId: string }) {
         confirmText='Eliminar convenio'
         destructive
         handleConfirm={() => {
-          deleteAgreement(agreementId)
+          if (!deleteAgreement(agreementId)) {
+            toast.error(
+              'El convenio está vinculado a un expediente o este rol no puede eliminarlo.'
+            )
+            return
+          }
           toast.success('Convenio eliminado.')
           navigate({ to: '/agreements' })
         }}

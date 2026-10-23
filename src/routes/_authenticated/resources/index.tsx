@@ -1,6 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { ResourcesPage } from '@/features/resources'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/resources/')({
-  component: ResourcesPage,
+  beforeLoad: () => {
+    throw redirect({ to: '/portfolio', search: { view: 'all' }, replace: true })
+  },
 })

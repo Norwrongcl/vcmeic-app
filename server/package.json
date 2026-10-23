@@ -1,0 +1,34 @@
+{
+  "name": "@vcm/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:local": "node --experimental-strip-types scripts/test-local.ts",
+    "start": "node dist/server/src/main.js"
+  },
+  "dependencies": {
+    "@nestjs/common": "12.2.0",
+    "@nestjs/core": "12.2.0",
+    "@nestjs/platform-express": "12.2.0",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "express": "5.1.0",
+    "cookie-parser": "1.4.7",
+    "pg": "8.16.3",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "25.6.0",
+    "@types/pg": "8.15.6",
+    "@types/express": "5.0.3",
+    "@types/cookie-parser": "1.4.9",
+    "@types/supertest": "6.0.3",
+    "supertest": "7.1.4",
+    "typescript": "6.0.3",
+    "vitest": "4.1.4"
+  }
+}

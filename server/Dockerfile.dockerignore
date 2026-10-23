@@ -1,0 +1,14 @@
+**
+!server/**
+!database/**
+!packages/domain/**
+**/node_modules/**
+**/dist/**
+**/._*
+**/.env
+**/.env.local
+**/.env.production
+**/*.log
+**/coverage/**
+**/.vitest-attachments/**
+**/__screenshots__/**

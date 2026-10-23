@@ -1,0 +1,138 @@
+export interface ResourceDefinition {
+  path: string
+  table: string
+  kind: string
+  idKey: string
+  create: string[]
+  commands: string[]
+  fields: Record<string, string>
+  privateFields?: string[]
+}
+export const resources: ResourceDefinition[] = [
+  {
+    path: 'organizations',
+    table: 'organizations',
+    kind: 'organization',
+    idKey: 'id',
+    create: ['createOrganization'],
+    commands: ['updateOrganization', 'archiveOrganization'],
+    fields: {
+      name: 'name',
+      organizationType: 'type',
+      taxId: 'tax_id',
+      email: 'email',
+      phone: 'phone',
+      website: 'website',
+      notes: 'notes',
+    },
+    privateFields: ['taxId', 'email', 'phone', 'notes'],
+  },
+  {
+    path: 'contacts',
+    table: 'contacts',
+    kind: 'contact',
+    idKey: 'id',
+    create: ['createContact'],
+    commands: ['updateContact', 'archiveContact'],
+    fields: {
+      name: 'name',
+      email: 'email',
+      phone: 'phone',
+      principalId: 'principal_id',
+    },
+    privateFields: ['email', 'phone', 'principalId'],
+  },
+  {
+    path: 'agreements',
+    table: 'agreements',
+    kind: 'agreement',
+    idKey: 'id',
+    create: ['createAgreement'],
+    commands: ['updateAgreement', 'archiveAgreement'],
+    fields: {
+      name: 'name',
+      organizationId: 'organization_id',
+      responsibleContactId: 'responsible_contact_id',
+      agreementType: 'type',
+      description: 'description',
+      startsOn: 'starts_on',
+      endsOn: 'ends_on',
+      status: 'status',
+      notes: 'notes',
+    },
+    privateFields: ['notes', 'responsibleContactId'],
+  },
+  {
+    path: 'resources',
+    table: 'resources',
+    kind: 'resource',
+    idKey: 'id',
+    create: ['createResource'],
+    commands: ['updateResource', 'archiveResource'],
+    fields: {
+      name: 'name',
+      category: 'category',
+      unit: 'unit',
+      quantity: 'quantity',
+      description: 'description',
+      notes: 'notes',
+    },
+    privateFields: ['notes'],
+  },
+  {
+    path: 'projects',
+    table: 'projects',
+    kind: 'project',
+    idKey: 'projectId',
+    create: ['createProject'],
+    commands: [
+      'updateProject',
+      'linkCase',
+      'saveWorkPlan',
+      'approveWorkPlan',
+      'revokeMandate',
+      'setExecutionState',
+      'saveTask',
+      'archiveTask',
+      'saveBudgetItem',
+      'archiveBudgetItem',
+      'saveExpense',
+      'archiveExpense',
+      'saveCommitment',
+      'saveForecast',
+      'revokeAuthorization',
+    ],
+    fields: {
+      name: 'name',
+      kind: 'kind',
+      executionState: 'execution_state',
+      startsOn: 'starts_on',
+      endsOn: 'ends_on',
+      location: 'location',
+    },
+  },
+  {
+    path: 'plans',
+    table: 'annual_plans',
+    kind: 'annual_plan',
+    idKey: 'id',
+    create: ['savePlan'],
+    commands: ['savePlan', 'transitionPlan'],
+    fields: { title: 'title', year: 'year', status: 'status' },
+  },
+  {
+    path: 'decisions',
+    table: 'decisions',
+    kind: 'decision',
+    idKey: 'id',
+    create: ['proposeDecision'],
+    commands: ['reviseDecision', 'decide'],
+    fields: {
+      title: 'title',
+      caseId: 'case_id',
+      kind: 'kind',
+      status: 'status',
+      authority: 'authority',
+    },
+  },
+]

@@ -21,9 +21,11 @@ import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authen
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedResourcesIndexRouteImport } from './routes/_authenticated/resources/index'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
+import { Route as AuthenticatedPortfolioIndexRouteImport } from './routes/_authenticated/portfolio/index'
 import { Route as AuthenticatedPartnersIndexRouteImport } from './routes/_authenticated/partners/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenticated/events/index'
+import { Route as AuthenticatedControlIndexRouteImport } from './routes/_authenticated/control/index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts/index'
 import { Route as AuthenticatedAppsIndexRouteImport } from './routes/_authenticated/apps/index'
 import { Route as AuthenticatedAgreementsIndexRouteImport } from './routes/_authenticated/agreements/index'
@@ -31,6 +33,8 @@ import { Route as AuthenticatedAgendaIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedActivitiesIndexRouteImport } from './routes/_authenticated/activities/index'
 import { Route as AuthenticatedResourcesNewRouteImport } from './routes/_authenticated/resources/new'
 import { Route as AuthenticatedResourcesResourceIdRouteImport } from './routes/_authenticated/resources/$resourceId'
+import { Route as AuthenticatedPortfolioNewRouteImport } from './routes/_authenticated/portfolio/new'
+import { Route as AuthenticatedPortfolioCaseIdRouteImport } from './routes/_authenticated/portfolio/$caseId'
 import { Route as AuthenticatedPartnersNewRouteImport } from './routes/_authenticated/partners/new'
 import { Route as AuthenticatedPartnersPartnerIdRouteImport } from './routes/_authenticated/partners/$partnerId'
 import { Route as AuthenticatedEventsNewRouteImport } from './routes/_authenticated/events/new'
@@ -111,6 +115,12 @@ const AuthenticatedReportsIndexRoute =
     path: '/reports/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPortfolioIndexRoute =
+  AuthenticatedPortfolioIndexRouteImport.update({
+    id: '/portfolio/',
+    path: '/portfolio/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPartnersIndexRoute =
   AuthenticatedPartnersIndexRouteImport.update({
     id: '/partners/',
@@ -127,6 +137,12 @@ const AuthenticatedEventsIndexRoute =
   AuthenticatedEventsIndexRouteImport.update({
     id: '/events/',
     path: '/events/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedControlIndexRoute =
+  AuthenticatedControlIndexRouteImport.update({
+    id: '/control/',
+    path: '/control/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedContactsIndexRoute =
@@ -168,6 +184,18 @@ const AuthenticatedResourcesResourceIdRoute =
   AuthenticatedResourcesResourceIdRouteImport.update({
     id: '/resources/$resourceId',
     path: '/resources/$resourceId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPortfolioNewRoute =
+  AuthenticatedPortfolioNewRouteImport.update({
+    id: '/portfolio/new',
+    path: '/portfolio/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPortfolioCaseIdRoute =
+  AuthenticatedPortfolioCaseIdRouteImport.update({
+    id: '/portfolio/$caseId',
+    path: '/portfolio/$caseId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPartnersNewRoute =
@@ -292,6 +320,8 @@ export interface FileRoutesByFullPath {
   '/events/new': typeof AuthenticatedEventsNewRoute
   '/partners/$partnerId': typeof AuthenticatedPartnersPartnerIdRouteWithChildren
   '/partners/new': typeof AuthenticatedPartnersNewRoute
+  '/portfolio/$caseId': typeof AuthenticatedPortfolioCaseIdRoute
+  '/portfolio/new': typeof AuthenticatedPortfolioNewRoute
   '/resources/$resourceId': typeof AuthenticatedResourcesResourceIdRouteWithChildren
   '/resources/new': typeof AuthenticatedResourcesNewRoute
   '/activities/': typeof AuthenticatedActivitiesIndexRoute
@@ -299,9 +329,11 @@ export interface FileRoutesByFullPath {
   '/agreements/': typeof AuthenticatedAgreementsIndexRoute
   '/apps/': typeof AuthenticatedAppsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/control/': typeof AuthenticatedControlIndexRoute
   '/events/': typeof AuthenticatedEventsIndexRoute
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/partners/': typeof AuthenticatedPartnersIndexRoute
+  '/portfolio/': typeof AuthenticatedPortfolioIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/resources/': typeof AuthenticatedResourcesIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -332,6 +364,8 @@ export interface FileRoutesByTo {
   '/events/new': typeof AuthenticatedEventsNewRoute
   '/partners/$partnerId': typeof AuthenticatedPartnersPartnerIdRouteWithChildren
   '/partners/new': typeof AuthenticatedPartnersNewRoute
+  '/portfolio/$caseId': typeof AuthenticatedPortfolioCaseIdRoute
+  '/portfolio/new': typeof AuthenticatedPortfolioNewRoute
   '/resources/$resourceId': typeof AuthenticatedResourcesResourceIdRouteWithChildren
   '/resources/new': typeof AuthenticatedResourcesNewRoute
   '/activities': typeof AuthenticatedActivitiesIndexRoute
@@ -339,9 +373,11 @@ export interface FileRoutesByTo {
   '/agreements': typeof AuthenticatedAgreementsIndexRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
+  '/control': typeof AuthenticatedControlIndexRoute
   '/events': typeof AuthenticatedEventsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/partners': typeof AuthenticatedPartnersIndexRoute
+  '/portfolio': typeof AuthenticatedPortfolioIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/resources': typeof AuthenticatedResourcesIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -374,6 +410,8 @@ export interface FileRoutesById {
   '/_authenticated/events/new': typeof AuthenticatedEventsNewRoute
   '/_authenticated/partners/$partnerId': typeof AuthenticatedPartnersPartnerIdRouteWithChildren
   '/_authenticated/partners/new': typeof AuthenticatedPartnersNewRoute
+  '/_authenticated/portfolio/$caseId': typeof AuthenticatedPortfolioCaseIdRoute
+  '/_authenticated/portfolio/new': typeof AuthenticatedPortfolioNewRoute
   '/_authenticated/resources/$resourceId': typeof AuthenticatedResourcesResourceIdRouteWithChildren
   '/_authenticated/resources/new': typeof AuthenticatedResourcesNewRoute
   '/_authenticated/activities/': typeof AuthenticatedActivitiesIndexRoute
@@ -381,9 +419,11 @@ export interface FileRoutesById {
   '/_authenticated/agreements/': typeof AuthenticatedAgreementsIndexRoute
   '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/_authenticated/control/': typeof AuthenticatedControlIndexRoute
   '/_authenticated/events/': typeof AuthenticatedEventsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/partners/': typeof AuthenticatedPartnersIndexRoute
+  '/_authenticated/portfolio/': typeof AuthenticatedPortfolioIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/resources/': typeof AuthenticatedResourcesIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -416,6 +456,8 @@ export interface FileRouteTypes {
     | '/events/new'
     | '/partners/$partnerId'
     | '/partners/new'
+    | '/portfolio/$caseId'
+    | '/portfolio/new'
     | '/resources/$resourceId'
     | '/resources/new'
     | '/activities/'
@@ -423,9 +465,11 @@ export interface FileRouteTypes {
     | '/agreements/'
     | '/apps/'
     | '/contacts/'
+    | '/control/'
     | '/events/'
     | '/help-center/'
     | '/partners/'
+    | '/portfolio/'
     | '/reports/'
     | '/resources/'
     | '/tasks/'
@@ -456,6 +500,8 @@ export interface FileRouteTypes {
     | '/events/new'
     | '/partners/$partnerId'
     | '/partners/new'
+    | '/portfolio/$caseId'
+    | '/portfolio/new'
     | '/resources/$resourceId'
     | '/resources/new'
     | '/activities'
@@ -463,9 +509,11 @@ export interface FileRouteTypes {
     | '/agreements'
     | '/apps'
     | '/contacts'
+    | '/control'
     | '/events'
     | '/help-center'
     | '/partners'
+    | '/portfolio'
     | '/reports'
     | '/resources'
     | '/tasks'
@@ -497,6 +545,8 @@ export interface FileRouteTypes {
     | '/_authenticated/events/new'
     | '/_authenticated/partners/$partnerId'
     | '/_authenticated/partners/new'
+    | '/_authenticated/portfolio/$caseId'
+    | '/_authenticated/portfolio/new'
     | '/_authenticated/resources/$resourceId'
     | '/_authenticated/resources/new'
     | '/_authenticated/activities/'
@@ -504,9 +554,11 @@ export interface FileRouteTypes {
     | '/_authenticated/agreements/'
     | '/_authenticated/apps/'
     | '/_authenticated/contacts/'
+    | '/_authenticated/control/'
     | '/_authenticated/events/'
     | '/_authenticated/help-center/'
     | '/_authenticated/partners/'
+    | '/_authenticated/portfolio/'
     | '/_authenticated/reports/'
     | '/_authenticated/resources/'
     | '/_authenticated/tasks/'
@@ -614,6 +666,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/portfolio/': {
+      id: '/_authenticated/portfolio/'
+      path: '/portfolio'
+      fullPath: '/portfolio/'
+      preLoaderRoute: typeof AuthenticatedPortfolioIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/partners/': {
       id: '/_authenticated/partners/'
       path: '/partners'
@@ -633,6 +692,13 @@ declare module '@tanstack/react-router' {
       path: '/events'
       fullPath: '/events/'
       preLoaderRoute: typeof AuthenticatedEventsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/control/': {
+      id: '/_authenticated/control/'
+      path: '/control'
+      fullPath: '/control/'
+      preLoaderRoute: typeof AuthenticatedControlIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contacts/': {
@@ -682,6 +748,20 @@ declare module '@tanstack/react-router' {
       path: '/resources/$resourceId'
       fullPath: '/resources/$resourceId'
       preLoaderRoute: typeof AuthenticatedResourcesResourceIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/portfolio/new': {
+      id: '/_authenticated/portfolio/new'
+      path: '/portfolio/new'
+      fullPath: '/portfolio/new'
+      preLoaderRoute: typeof AuthenticatedPortfolioNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/portfolio/$caseId': {
+      id: '/_authenticated/portfolio/$caseId'
+      path: '/portfolio/$caseId'
+      fullPath: '/portfolio/$caseId'
+      preLoaderRoute: typeof AuthenticatedPortfolioCaseIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/partners/new': {
@@ -909,6 +989,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEventsNewRoute: typeof AuthenticatedEventsNewRoute
   AuthenticatedPartnersPartnerIdRoute: typeof AuthenticatedPartnersPartnerIdRouteWithChildren
   AuthenticatedPartnersNewRoute: typeof AuthenticatedPartnersNewRoute
+  AuthenticatedPortfolioCaseIdRoute: typeof AuthenticatedPortfolioCaseIdRoute
+  AuthenticatedPortfolioNewRoute: typeof AuthenticatedPortfolioNewRoute
   AuthenticatedResourcesResourceIdRoute: typeof AuthenticatedResourcesResourceIdRouteWithChildren
   AuthenticatedResourcesNewRoute: typeof AuthenticatedResourcesNewRoute
   AuthenticatedActivitiesIndexRoute: typeof AuthenticatedActivitiesIndexRoute
@@ -916,9 +998,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAgreementsIndexRoute: typeof AuthenticatedAgreementsIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
+  AuthenticatedControlIndexRoute: typeof AuthenticatedControlIndexRoute
   AuthenticatedEventsIndexRoute: typeof AuthenticatedEventsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedPartnersIndexRoute: typeof AuthenticatedPartnersIndexRoute
+  AuthenticatedPortfolioIndexRoute: typeof AuthenticatedPortfolioIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedResourcesIndexRoute: typeof AuthenticatedResourcesIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
@@ -942,6 +1026,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPartnersPartnerIdRoute:
     AuthenticatedPartnersPartnerIdRouteWithChildren,
   AuthenticatedPartnersNewRoute: AuthenticatedPartnersNewRoute,
+  AuthenticatedPortfolioCaseIdRoute: AuthenticatedPortfolioCaseIdRoute,
+  AuthenticatedPortfolioNewRoute: AuthenticatedPortfolioNewRoute,
   AuthenticatedResourcesResourceIdRoute:
     AuthenticatedResourcesResourceIdRouteWithChildren,
   AuthenticatedResourcesNewRoute: AuthenticatedResourcesNewRoute,
@@ -950,9 +1036,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAgreementsIndexRoute: AuthenticatedAgreementsIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
+  AuthenticatedControlIndexRoute: AuthenticatedControlIndexRoute,
   AuthenticatedEventsIndexRoute: AuthenticatedEventsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedPartnersIndexRoute: AuthenticatedPartnersIndexRoute,
+  AuthenticatedPortfolioIndexRoute: AuthenticatedPortfolioIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
   AuthenticatedResourcesIndexRoute: AuthenticatedResourcesIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,

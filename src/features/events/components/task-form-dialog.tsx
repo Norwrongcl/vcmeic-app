@@ -112,8 +112,15 @@ export function TaskFormDialog({
       setErrors(nextErrors)
       return
     }
-    if (task) updateTask(task.id, values)
-    else addTask(values)
+    try {
+      if (task) updateTask(task.id, values)
+      else addTask(values)
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'No se pudo guardar.'
+      )
+      return
+    }
     toast.success(task ? 'Tarea actualizada.' : 'Tarea creada.')
     handleOpenChange(false)
   }

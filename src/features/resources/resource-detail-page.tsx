@@ -21,9 +21,12 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { useAppStore } from '@/features/core/model/app-store'
 import { RESOURCE_CATEGORY_LABELS } from '@/features/core/model/catalogs'
+import { useDemoRole } from '@/features/vcm/model/use-vcm'
+import { canOperate } from '@/features/vcm/model/workflow'
 
 export function ResourceDetailPage({ resourceId }: { resourceId: string }) {
   const navigate = useNavigate()
+  const writable = canOperate(useDemoRole((s) => s.role))
   const resource = useAppStore((state) => state.resources[resourceId])
   const deleteResource = useAppStore((state) => state.deleteResource)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -86,7 +89,7 @@ export function ResourceDetailPage({ resourceId }: { resourceId: string }) {
               {resource.description || 'Sin descripción.'}
             </p>
           </div>
-          <div className='flex gap-2'>
+          <div className={writable ? 'flex gap-2' : 'hidden'}>
             <Button asChild variant='outline'>
               <Link to='/resources/$resourceId/edit' params={{ resourceId }}>
                 <Pencil data-icon='inline-start' /> Editar

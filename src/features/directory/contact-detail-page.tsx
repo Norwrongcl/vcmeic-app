@@ -19,9 +19,12 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { useAppStore } from '@/features/core/model/app-store'
+import { useDemoRole } from '@/features/vcm/model/use-vcm'
+import { canOperate } from '@/features/vcm/model/workflow'
 
 export function ContactDetailPage({ contactId }: { contactId: string }) {
   const navigate = useNavigate()
+  const writable = canOperate(useDemoRole((s) => s.role))
   const contact = useAppStore((state) => state.contacts[contactId])
   const partners = useAppStore((state) => state.partners)
   const deleteContact = useAppStore((state) => state.deleteContact)
@@ -83,7 +86,7 @@ export function ContactDetailPage({ contactId }: { contactId: string }) {
               {contact.role || 'Contacto'}
             </p>
           </div>
-          <div className='flex gap-2'>
+          <div className={writable ? 'flex gap-2' : 'hidden'}>
             <Button asChild variant='outline'>
               <Link to='/contacts/$contactId/edit' params={{ contactId }}>
                 <Pencil data-icon='inline-start' /> Editar

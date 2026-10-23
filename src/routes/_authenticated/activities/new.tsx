@@ -1,6 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { ActivityFormPage } from '@/features/activities'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/activities/new')({
-  component: ActivityFormPage,
+  beforeLoad: () => {
+    throw redirect({
+      to: '/portfolio/new',
+      search: { kind: 'activity' },
+      replace: true,
+    })
+  },
 })

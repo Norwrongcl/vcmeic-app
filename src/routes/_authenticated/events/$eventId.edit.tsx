@@ -1,12 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { EventFormPage } from '@/features/events'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/events/$eventId/edit')({
-  component: RouteComponent,
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: '/portfolio/$caseId',
+      params: { caseId: params.eventId },
+      replace: true,
+    })
+  },
 })
-
-// eslint-disable-next-line react-refresh/only-export-components
-function RouteComponent() {
-  const { eventId } = Route.useParams()
-  return <EventFormPage eventId={eventId} />
-}

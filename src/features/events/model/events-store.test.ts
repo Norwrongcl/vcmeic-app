@@ -177,7 +177,9 @@ describe('events store', () => {
 
     expect(Object.keys(store.getState().events).length).toBeGreaterThan(0)
     expect(store.getState().storageWarning).toBe(true)
-    expect(storage.getItem(EVENTS_STORAGE_KEY)).toBeNull()
+    expect(storage.getItem(`${EVENTS_STORAGE_KEY}-unreadable-backup`)).toBe(
+      '{not-json'
+    )
   })
 
   it('falls back safely when the persisted schema version is unsupported', () => {

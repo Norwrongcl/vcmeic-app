@@ -131,8 +131,16 @@ export function EventTasks({
                             variant='ghost'
                             aria-label={`Completar ${task.title}`}
                             onClick={() => {
-                              updateTask(task.id, { status: 'done' })
-                              toast.success('Tarea completada.')
+                              try {
+                                updateTask(task.id, { status: 'done' })
+                                toast.success('Tarea completada.')
+                              } catch (error) {
+                                toast.error(
+                                  error instanceof Error
+                                    ? error.message
+                                    : 'No se pudo completar.'
+                                )
+                              }
                             }}
                           >
                             <CheckCircle2 />
@@ -197,7 +205,14 @@ export function EventTasks({
         destructive
         handleConfirm={() => {
           if (!deletingTask) return
-          deleteTask(deletingTask.id)
+          try {
+            deleteTask(deletingTask.id)
+          } catch (error) {
+            toast.error(
+              error instanceof Error ? error.message : 'No se pudo eliminar.'
+            )
+            return
+          }
           setDeletingTask(undefined)
           toast.success('Tarea eliminada.')
         }}

@@ -1,6 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { GlobalTasksPage } from '@/features/events/global-tasks-page'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/tasks/')({
-  component: GlobalTasksPage,
+  beforeLoad: () => {
+    throw redirect({ to: '/portfolio', search: { view: 'all' }, replace: true })
+  },
 })

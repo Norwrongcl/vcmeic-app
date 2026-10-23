@@ -1,0 +1,42 @@
+name: vcm-api
+services:
+  api:
+    image: ${API_IMAGE:?A verified immutable runtime image is required}
+    pull_policy: never
+    restart: unless-stopped
+    user: '1000:1000'
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      NODE_ENV: production
+      TZ: America/Santiago
+      PORT: '3000'
+      DATABASE_URL_FILE: /run/secrets/database_url
+      CURSOR_KEY_FILE: /run/secrets/cursor_key
+      WEB_ORIGINS: ${WEB_ORIGINS:?Use an explicitly verified origin}
+    secrets: [database_url, cursor_key]
+    networks: [backend, access]
+    ports:
+      - '127.0.0.1:32800:3000'
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+secrets:
+  database_url:
+    file: ./secrets/api/database_url
+  cursor_key:
+    file: ./secrets/api/cursor_key
+networks:
+  backend:
+    external: true
+    name: vcm_backend
+  access:
+    name: vcm_api_access

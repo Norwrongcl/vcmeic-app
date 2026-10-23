@@ -1,0 +1,22 @@
+{
+  "name": "@vcm/database",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "migrate": "node --experimental-strip-types src/cli.ts",
+    "test:local": "node --experimental-strip-types scripts/test-local.ts"
+  },
+  "dependencies": {
+    "pg": "8.16.3"
+  },
+  "devDependencies": {
+    "@types/pg": "8.15.6",
+    "@types/node": "25.6.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.4",
+    "embedded-postgres": "18.4.0-beta.17"
+  }
+}

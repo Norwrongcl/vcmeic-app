@@ -28,9 +28,12 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { useAppStore } from '@/features/core/model/app-store'
+import { useDemoRole } from '@/features/vcm/model/use-vcm'
+import { canOperate } from '@/features/vcm/model/workflow'
 
 export function PartnerDetailPage({ partnerId }: { partnerId: string }) {
   const navigate = useNavigate()
+  const writable = canOperate(useDemoRole((s) => s.role))
   const partner = useAppStore((state) => state.partners[partnerId])
   const contacts = useAppStore((state) => state.contacts)
   const agreements = useAppStore((state) => state.agreements)
@@ -100,7 +103,7 @@ export function PartnerDetailPage({ partnerId }: { partnerId: string }) {
               {partner.type || 'Organización vinculada'}
             </p>
           </div>
-          <div className='flex gap-2'>
+          <div className={writable ? 'flex gap-2' : 'hidden'}>
             <Button asChild variant='outline'>
               <Link to='/partners/$partnerId/edit' params={{ partnerId }}>
                 <Pencil data-icon='inline-start' /> Editar
@@ -195,7 +198,12 @@ export function PartnerDetailPage({ partnerId }: { partnerId: string }) {
         destructive
         disabled={linkedAgreements.length > 0}
         handleConfirm={() => {
-          if (!deletePartner(partnerId)) return
+          if (!deletePartner(partnerId)) {
+            toast.error(
+              'La organización está vinculada a un expediente o convenio, o este rol no puede eliminarla.'
+            )
+            return
+          }
           toast.success('Socio eliminado.')
           navigate({ to: '/partners' })
         }}

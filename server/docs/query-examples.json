@@ -1,0 +1,9 @@
+{
+  "version": "vcm-api-v1",
+  "examples": [
+    {"entity":"cases","select":["id","name","state","endsAt"],"where":{"and":[{"field":"portfolio","op":"eq","value":"Alumni"},{"field":"startsAt","op":"gte","value":"2026-01-01"},{"field":"state","op":"eq","value":"closing"},{"field":"evidence.reviewStatus","op":"eq","value":"pending"}]},"orderBy":[{"field":"endsAt","direction":"asc"}],"page":{"limit":25}},
+    {"entity":"projects","select":["id","name"],"relations":[{"name":"tasks","select":["id","title","status"],"limit":10}],"page":{"limit":20}},
+    {"entity":"budgets","select":[],"where":{"field":"plannedAmount","op":"isNull","value":false},"aggregate":{"sum":["plannedAmount"]}}
+  ],
+  "semantics": "Consultas sobre registros autorizados. SUM omite null; no equivale a avance institucional ni a presupuesto completo. Usa /v1/indicators y el resumen financiero del proyecto para esos cálculos. Los cursores solo sirven para la misma consulta e identidad."
+}

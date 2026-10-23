@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { vcmDataSchema } from '@/features/vcm/model/schema'
 
 const metadataSchema = {
   id: z.string(),
@@ -110,6 +111,8 @@ const taskSchema = z.object({
   eventId: z.string().optional(),
   title: z.string(),
   description: z.string(),
+  kind: z.enum(['task', 'milestone']).optional(),
+  dependencyIds: z.array(z.string()).optional(),
   assignee: z.string(),
   assigneeContactIds: z.array(z.string()).optional(),
   phase: z.enum(['pre', 'during', 'post']).optional(),
@@ -161,6 +164,7 @@ const resourceSchema = z.object({
 })
 
 export const appDataSchema = z.object({
+  vcm: vcmDataSchema.optional(),
   activities: z.record(z.string(), activitySchema),
   events: z.record(z.string(), eventSchema),
   tasks: z.record(z.string(), taskSchema),
@@ -173,7 +177,7 @@ export const appDataSchema = z.object({
 })
 
 export const appSnapshotSchema = z.object({
-  version: z.literal(2),
+  version: z.literal(4),
   data: appDataSchema,
 })
 
@@ -214,4 +218,14 @@ export const legacyEventsSnapshotSchema = z.object({
     budgetItems: z.record(z.string(), budgetItemSchema),
     expenses: z.record(z.string(), expenseSchema),
   }),
+})
+
+export const appSnapshotV2Schema = z.object({
+  version: z.literal(2),
+  data: appDataSchema.omit({ vcm: true }),
+})
+
+export const appSnapshotV3Schema = z.object({
+  version: z.literal(3),
+  data: appDataSchema,
 })

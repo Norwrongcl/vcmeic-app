@@ -1,12 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { ActivityDetailPage } from '@/features/activities'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/activities/$activityId')({
-  component: RouteComponent,
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: '/portfolio/$caseId',
+      params: { caseId: params.activityId },
+      replace: true,
+    })
+  },
 })
-
-// eslint-disable-next-line react-refresh/only-export-components
-function RouteComponent() {
-  const { activityId } = Route.useParams()
-  return <ActivityDetailPage activityId={activityId} />
-}

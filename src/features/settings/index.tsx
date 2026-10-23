@@ -1,5 +1,1 @@
-import { LocalDataSettings } from './local-data-settings'
-
-export function Settings() {
-  return <LocalDataSettings />
-}
+export { VcmSettingsPage as Settings } from '@/features/vcm/pages/settings-page'

@@ -1,6 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { DirectoryPage } from '@/features/directory'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/contacts/')({
-  component: () => <DirectoryPage entity='contacts' />,
+  beforeLoad: () => {
+    throw redirect({
+      to: '/portfolio',
+      search: { view: 'partners' },
+      replace: true,
+    })
+  },
 })

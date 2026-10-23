@@ -1,3 +1,5 @@
+import type { VcmData } from '@/features/vcm/model/types'
+
 export type EntityMetadata = {
   id: string
   createdAt: string
@@ -94,6 +96,8 @@ export type Event = EntityMetadata & {
 export type EventTask = EntityMetadata & {
   eventId?: string
   title: string
+  kind?: 'task' | 'milestone'
+  dependencyIds?: string[]
   description: string
   assignee: string
   assigneeContactIds?: string[]
@@ -151,6 +155,7 @@ export type EventsData = {
 }
 
 export type AppData = EventsData & {
+  vcm?: VcmData
   activities: Record<string, Activity>
   partners: Record<string, Partner>
   contacts: Record<string, Contact>

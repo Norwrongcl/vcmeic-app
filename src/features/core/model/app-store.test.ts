@@ -62,7 +62,7 @@ describe('central app store', () => {
     })
 
     const snapshot = JSON.parse(storage.value(APP_STORAGE_KEY)!)
-    expect(snapshot.version).toBe(2)
+    expect(snapshot.version).toBe(4)
     expect(snapshot.data.contacts[contactId].name).toBe('Ana Pérez')
     expect(snapshot.data.activities[activityId].responsibleContactId).toBe(
       contactId
@@ -96,7 +96,7 @@ describe('central app store', () => {
     )
   })
 
-  it('creates web activities as approved records', () => {
+  it('creates web activities pending review', () => {
     const store = createAppStore({
       storage: createMemoryStorage(),
       idFactory,
@@ -108,7 +108,7 @@ describe('central app store', () => {
 
     expect(store.getState().activities[id]).toMatchObject({
       source: 'web',
-      approvalStatus: 'approved',
+      approvalStatus: 'pending',
       rejectionReason: null,
     })
   })
@@ -123,7 +123,7 @@ describe('central app store', () => {
     const id = store.getState().addActivity(validActivityInput)
 
     expect(store.getState().rejectActivity(id, '   ')).toBe(false)
-    expect(store.getState().activities[id].approvalStatus).toBe('approved')
+    expect(store.getState().activities[id].approvalStatus).toBe('pending')
 
     expect(store.getState().rejectActivity(id, '  Falta respaldo  ')).toBe(true)
     expect(store.getState().activities[id]).toMatchObject({
@@ -154,7 +154,7 @@ describe('central app store', () => {
       approvalStatus: 'approved',
       rejectionReason: null,
     })
-    expect(JSON.parse(storage.value(APP_STORAGE_KEY)!).version).toBe(2)
+    expect(JSON.parse(storage.value(APP_STORAGE_KEY)!).version).toBe(4)
   })
 
   it('keeps current data when an imported snapshot is malformed', () => {

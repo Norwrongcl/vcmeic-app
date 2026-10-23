@@ -86,12 +86,12 @@ export function EventFinances({ eventId }: { eventId: string }) {
           tone='violet'
         />
         <MetricCard
-          label='Disponible'
+          label='Diferencia presupuestaria'
           value={formatClp(financials.available)}
           description={
             financials.isOverBudget
               ? 'Presupuesto sobre-ejecutado'
-              : 'Saldo vigente'
+              : 'Planificado menos gastos; no acredita fondos'
           }
           icon={Banknote}
           tone='emerald'
@@ -138,7 +138,7 @@ export function EventFinances({ eventId }: { eventId: string }) {
                     <TableHead>Partida</TableHead>
                     <TableHead>Planificado</TableHead>
                     <TableHead>Gastado</TableHead>
-                    <TableHead>Disponible</TableHead>
+                    <TableHead>Diferencia</TableHead>
                     <TableHead>Ejecución</TableHead>
                     <TableHead className='text-end'>Acciones</TableHead>
                   </TableRow>

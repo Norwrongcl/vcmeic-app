@@ -1,0 +1,178 @@
+{
+  "version": "PO-2026.09-v1",
+  "enforcement": "API required; catalogue alone grants no permission",
+  "actions": [
+    {
+      "action": "query",
+      "roles": [
+        "coordination",
+        "leadership",
+        "direction",
+        "responsible",
+        "designer",
+        "technician",
+        "viewer"
+      ],
+      "scopes": [
+        "coordination:read",
+        "interview:read"
+      ],
+      "preconditions": [
+        "object visibility before pagination and aggregate",
+        "interview assigned case only"
+      ],
+      "authority": "none"
+    },
+    {
+      "action": "captureAntecedent",
+      "roles": [
+        "coordination",
+        "leadership",
+        "responsible"
+      ],
+      "scopes": [
+        "coordination:write",
+        "interview:capture"
+      ],
+      "preconditions": [
+        "assigned/authorized case",
+        "expected version",
+        "source retained",
+        "classification excluded for interview"
+      ],
+      "authority": "none"
+    },
+    {
+      "action": "editOperationalDraft",
+      "roles": [
+        "coordination",
+        "leadership"
+      ],
+      "scopes": [
+        "coordination:write"
+      ],
+      "preconditions": [
+        "object authorization",
+        "expected version",
+        "invalidate affected approval"
+      ],
+      "authority": "none"
+    },
+    {
+      "action": "resolveConflict",
+      "roles": [
+        "coordination",
+        "leadership"
+      ],
+      "scopes": [],
+      "preconditions": [
+        "explicit reason",
+        "retain assertions"
+      ],
+      "authority": "human"
+    },
+    {
+      "action": "approveStrategyOrContent",
+      "roles": [
+        "coordination",
+        "leadership"
+      ],
+      "scopes": [],
+      "preconditions": [
+        "exact revision",
+        "required higher authority resolved"
+      ],
+      "authority": "human"
+    },
+    {
+      "action": "approveBudget",
+      "roles": [
+        "direction"
+      ],
+      "scopes": [],
+      "preconditions": [
+        "exact decision revision",
+        "financial authority"
+      ],
+      "authority": "human"
+    },
+    {
+      "action": "validateInstitutional",
+      "roles": [
+        "coordination",
+        "leadership"
+      ],
+      "scopes": [],
+      "preconditions": [
+        "QA",
+        "reviewed evidence",
+        "no unresolved conflicts",
+        "institutional process"
+      ],
+      "authority": "human"
+    },
+    {
+      "action": "executeMandate",
+      "roles": [
+        "coordination",
+        "leadership"
+      ],
+      "scopes": [
+        "coordination:execute"
+      ],
+      "preconditions": [
+        "current human approval",
+        "action class and limits",
+        "recheck before external effect",
+        "no cycles in dependencies",
+        "no budget excess"
+      ],
+      "authority": "approved mandate"
+    },
+    {
+      "action": "archiveDraft",
+      "roles": [
+        "coordination",
+        "leadership"
+      ],
+      "scopes": [
+        "coordination:write"
+      ],
+      "preconditions": [
+        "no formal dependants",
+        "reason",
+        "expected version"
+      ],
+      "authority": "none"
+    },
+    {
+      "action": "reviewAnnualPlan",
+      "roles": [
+        "coordination",
+        "leadership",
+        "direction"
+      ],
+      "scopes": [],
+      "preconditions": [
+        "exact plan revision",
+        "leadership sanction before direction approval"
+      ],
+      "authority": "human"
+    },
+    {
+      "action": "resolveDecision",
+      "roles": [
+        "coordination",
+        "leadership",
+        "direction"
+      ],
+      "scopes": [],
+      "preconditions": [
+        "exact decision revision",
+        "required authority",
+        "current state"
+      ],
+      "authority": "human"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "version": "PO-2026.09-v1",
+  "case": {
+    "states": [
+      "open",
+      "construction",
+      "waiting",
+      "review",
+      "escalated",
+      "validated",
+      "closing",
+      "qa",
+      "rendered",
+      "closed",
+      "returned"
+    ],
+    "transitions": {
+      "open": ["construction", "waiting"],
+      "construction": ["waiting", "review"],
+      "waiting": ["construction", "review"],
+      "review": ["validated", "returned", "escalated"],
+      "escalated": ["review", "returned"],
+      "validated": ["closing", "returned"],
+      "closing": ["qa", "returned"],
+      "qa": ["rendered", "returned"],
+      "rendered": ["closed", "returned"],
+      "closed": ["returned"],
+      "returned": ["construction", "review"]
+    }
+  },
+  "execution": {
+    "states": ["draft", "planned", "in_progress", "completed", "cancelled"]
+  },
+  "field": {
+    "states": ["confirmed", "partial", "pending", "conflict"]
+  },
+  "institutional": {
+    "states": ["pending", "observed", "validated"]
+  },
+  "plan": {
+    "states": ["draft", "review", "sanctioned", "approved"]
+  },
+  "decision": {
+    "states": [
+      "pending",
+      "coordination_review",
+      "leadership_review",
+      "direction_required",
+      "approved",
+      "rejected",
+      "returned",
+      "postponed",
+      "in_execution",
+      "closed",
+      "escalated"
+    ]
+  },
+  "presenceTypes": [
+    "Reconocimiento",
+    "Cargo de relevancia pública o privada",
+    "Liderazgo en grupo disciplinar",
+    "Participación como expositor/a",
+    "Participación como evaluador/a",
+    "Participación en una mesa/comisión técnica o asesora",
+    "Presencia en medios de comunicación masivos o especializados"
+  ],
+  "roles": [
+    "coordination",
+    "leadership",
+    "direction",
+    "responsible",
+    "designer",
+    "technician",
+    "viewer"
+  ]
+}

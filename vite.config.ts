@@ -22,7 +22,7 @@ export default defineConfig({
     },
   },
   test: {
-    exclude: ['**/node_modules/**', '**/dist/**', '.worktrees/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', '.worktrees/**', 'database/**', 'server/**', 'packages/**'],
     silent: 'passed-only',
     unstubEnvs: true,
     browser: {

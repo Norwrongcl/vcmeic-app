@@ -1,6 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { AgreementsPage } from '@/features/agreements'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/agreements/')({
-  component: AgreementsPage,
+  beforeLoad: () => {
+    throw redirect({
+      to: '/portfolio',
+      search: { view: 'agreements' },
+      replace: true,
+    })
+  },
 })

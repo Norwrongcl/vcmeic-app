@@ -1,8 +1,13 @@
 import { useStore } from 'zustand'
 import { createStore, type StoreApi } from 'zustand/vanilla'
+import { RULE_VERSION } from '@/features/vcm/model/catalogs'
+import { migrateVcmData } from '@/features/vcm/model/migration'
+import type { Actor, VcmData } from '@/features/vcm/model/types'
 import {
   appSnapshotSchema,
   appSnapshotV1Schema,
+  appSnapshotV2Schema,
+  appSnapshotV3Schema,
   legacyEventsSnapshotSchema,
 } from './schema'
 import { DEMO_APP_DATA, EMPTY_APP_DATA } from './seed'
@@ -31,13 +36,14 @@ import {
 
 export const APP_STORAGE_KEY = 'vcmeic-mvp-v1'
 export const LEGACY_EVENTS_STORAGE_KEY = 'contenthub-events-v1'
-export const APP_SCHEMA_VERSION = 2
+export const APP_SCHEMA_VERSION = 4
 
 export type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
 type ImportResult = { success: true } | { success: false; error: string }
 
 type AppActions = {
+  replaceVcmData: (data: VcmData) => void
   addActivity: (input: ActivityInput) => string
   updateActivity: (id: string, input: Partial<ActivityInput>) => void
   approveActivity: (id: string) => void
@@ -63,7 +69,7 @@ type AppActions = {
   deleteExpense: (id: string) => void
   addAgreement: (input: AgreementInput) => string
   updateAgreement: (id: string, input: Partial<AgreementInput>) => void
-  deleteAgreement: (id: string) => void
+  deleteAgreement: (id: string) => boolean
   addResource: (input: ResourceInput) => string
   updateResource: (id: string, input: Partial<ResourceInput>) => void
   deleteResource: (id: string) => void
@@ -76,6 +82,7 @@ type AppActions = {
 export type AppStoreState = AppData &
   AppActions & {
     storageWarning: boolean
+    operationActor?: Actor
   }
 
 export type CreateAppStoreOptions = {
@@ -91,6 +98,7 @@ function cloneData(data: AppData): AppData {
 
 function dataFromState(state: AppStoreState): AppData {
   return {
+    vcm: state.vcm,
     activities: state.activities,
     events: state.events,
     tasks: state.tasks,
@@ -113,6 +121,16 @@ function parseSnapshot(raw: string): { data: AppData; migrated: boolean } {
   if (current.success) {
     return { data: current.data.data, migrated: false }
   }
+
+  const v3 = appSnapshotV3Schema.safeParse(json)
+  if (v3.success) return { data: v3.data.data, migrated: true }
+
+  const v2 = appSnapshotV2Schema.safeParse(json)
+  if (v2.success)
+    return {
+      data: { ...v2.data.data, vcm: migrateVcmData(v2.data.data) },
+      migrated: true,
+    }
 
   const previous = appSnapshotV1Schema.safeParse(json)
   if (!previous.success) throw new Error('Invalid app snapshot')
@@ -224,7 +242,7 @@ function loadData(
       }
       return { data: cloneData(parsed.data), storageWarning: false }
     } catch {
-      storage.removeItem(APP_STORAGE_KEY)
+      storage.setItem(`${APP_STORAGE_KEY}-unreadable-backup`, current)
       return { data: cloneData(DEMO_APP_DATA), storageWarning: true }
     }
   }
@@ -237,7 +255,7 @@ function loadData(
       storage.removeItem(LEGACY_EVENTS_STORAGE_KEY)
       return { data, storageWarning: false }
     } catch {
-      storage.removeItem(LEGACY_EVENTS_STORAGE_KEY)
+      storage.setItem(`${LEGACY_EVENTS_STORAGE_KEY}-unreadable-backup`, legacy)
       return { data: cloneData(DEMO_APP_DATA), storageWarning: true }
     }
   }
@@ -264,9 +282,85 @@ export function createAppStore(
     ? { data: cloneData(options.initialData), storageWarning: false }
     : loadData(storage, idFactory, nowFactory)
 
+  loaded.data.vcm = migrateVcmData(loaded.data)
+
   return createStore<AppStoreState>()((set, get) => {
+    let previousData = cloneData(loaded.data)
     const persist = () => {
-      storage.setItem(APP_STORAGE_KEY, snapshot(dataFromState(get())))
+      const current = dataFromState(get())
+      const vcm = current.vcm
+        ? structuredClone(current.vcm)
+        : migrateVcmData(current)
+      const actor = get().operationActor ?? {
+        id: 'demo-coordination',
+        name: 'Coordinación · demostración',
+        role: 'coordination' as const,
+      }
+      for (const key of [
+        'tasks',
+        'budgetItems',
+        'expenses',
+        'partners',
+        'contacts',
+        'agreements',
+        'resources',
+      ] as const) {
+        const before = previousData[key] as Record<
+          string,
+          { id: string; eventId?: string }
+        >
+        const after = current[key] as Record<
+          string,
+          { id: string; eventId?: string }
+        >
+        for (const id of new Set([
+          ...Object.keys(before),
+          ...Object.keys(after),
+        ])) {
+          if (JSON.stringify(before[id]) === JSON.stringify(after[id])) continue
+          const projectId = after[id]?.eventId ?? before[id]?.eventId
+          const dossiers = Object.values(vcm.cases).filter(
+            (c) =>
+              (projectId && c.projectId === projectId) ||
+              (key === 'partners' && c.organizationIds.includes(id)) ||
+              (key === 'agreements' && c.agreementIds.includes(id))
+          )
+          const correlationId = crypto.randomUUID()
+          for (const dossier of dossiers.length ? dossiers : [null]) {
+            vcm.audit.push({
+              id: crypto.randomUUID(),
+              caseId: dossier?.id ?? '',
+              at: nowFactory(),
+              actor,
+              action: `operation:${key}`,
+              reason:
+                'Cambio operacional o de entidad maestra local; sin sincronización externa.',
+              before: before[id] ?? null,
+              after: after[id] ?? null,
+              ruleVersion: RULE_VERSION,
+              correlationId,
+            })
+            if (dossier) {
+              dossier.version++
+              dossier.updatedAt = nowFactory()
+              if (
+                ['validated', 'closing', 'qa', 'rendered', 'closed'].includes(
+                  dossier.state
+                )
+              ) {
+                dossier.state = 'returned'
+                dossier.institutionalValidation = 'pending'
+                for (const link of Object.values(vcm.indicatorLinks))
+                  if (link.caseId === dossier.id) link.status = 'pending'
+              }
+            }
+          }
+        }
+      }
+      current.vcm = vcm
+      storage.setItem(APP_STORAGE_KEY, snapshot(current))
+      set({ vcm })
+      previousData = cloneData(current)
     }
 
     const updateRecord = <
@@ -307,7 +401,7 @@ export function createAppStore(
           {
             ...input,
             source: 'web',
-            approvalStatus: 'approved',
+            approvalStatus: 'pending',
             rejectionReason: null,
           },
           idFactory,
@@ -352,6 +446,16 @@ export function createAppStore(
         updateRecord<Partner, 'partners'>('partners', id, input),
       deletePartner: (id) => {
         const state = get()
+        if (
+          (state.operationActor &&
+            !['coordination', 'leadership'].includes(
+              state.operationActor.role
+            )) ||
+          Object.values(state.vcm?.cases ?? {}).some((c) =>
+            c.organizationIds.includes(id)
+          )
+        )
+          return false
         if (
           Object.values(state.agreements).some(
             (agreement) => agreement.partnerId === id
@@ -507,9 +611,28 @@ export function createAppStore(
         persist()
         return item.id
       },
-      updateTask: (id, input) =>
-        updateRecord<EventTask, 'tasks'>('tasks', id, input),
-      deleteTask: (id) => removeRecord('tasks', id),
+      updateTask: (id, input) => {
+        const task = get().tasks[id]
+        if (
+          input.status === 'done' &&
+          (task?.dependencyIds ?? []).some(
+            (dependencyId) => get().tasks[dependencyId]?.status !== 'done'
+          )
+        )
+          throw new Error(
+            'Completa las dependencias antes de cerrar esta tarea.'
+          )
+        updateRecord<EventTask, 'tasks'>('tasks', id, input)
+      },
+      deleteTask: (id) => {
+        if (
+          Object.values(get().tasks).some((t) => t.dependencyIds?.includes(id))
+        )
+          throw new Error(
+            'Esta tarea es una dependencia de otro hito. Conserva el predecesor o retira primero el hito dependiente.'
+          )
+        removeRecord('tasks', id)
+      },
       addBudgetItem: (input) => {
         const item = createRecord<BudgetItemInput, BudgetItem>(
           input,
@@ -564,7 +687,20 @@ export function createAppStore(
       },
       updateAgreement: (id, input) =>
         updateRecord<Agreement, 'agreements'>('agreements', id, input),
-      deleteAgreement: (id) => removeRecord('agreements', id),
+      deleteAgreement: (id) => {
+        if (
+          (get().operationActor &&
+            !['coordination', 'leadership'].includes(
+              get().operationActor!.role
+            )) ||
+          Object.values(get().vcm?.cases ?? {}).some((c) =>
+            c.agreementIds.includes(id)
+          )
+        )
+          return false
+        removeRecord('agreements', id)
+        return true
+      },
       addResource: (input) => {
         const item = createRecord<ResourceInput, Resource>(
           input,
@@ -580,12 +716,20 @@ export function createAppStore(
       updateResource: (id, input) =>
         updateRecord<Resource, 'resources'>('resources', id, input),
       deleteResource: (id) => removeRecord('resources', id),
+      replaceVcmData: (vcm) => {
+        const next = { ...dataFromState(get()), vcm }
+        storage.setItem(APP_STORAGE_KEY, snapshot(next))
+        set({ vcm })
+      },
       exportSnapshot: () => snapshot(dataFromState(get())),
       importSnapshot: (raw) => {
         try {
           const parsed = parseSnapshot(raw)
-          set(cloneData(parsed.data))
-          persist()
+          const imported = cloneData(parsed.data)
+          imported.vcm ??= migrateVcmData(imported)
+          storage.setItem(APP_STORAGE_KEY, snapshot(imported))
+          set(imported)
+          previousData = cloneData(imported)
           return { success: true }
         } catch {
           return {
@@ -595,8 +739,11 @@ export function createAppStore(
         }
       },
       resetData: () => {
-        set(cloneData(DEMO_APP_DATA))
-        persist()
+        const demo = cloneData(DEMO_APP_DATA)
+        demo.vcm = migrateVcmData(demo)
+        storage.setItem(APP_STORAGE_KEY, snapshot(demo))
+        set(demo)
+        previousData = cloneData(demo)
       },
       dismissStorageWarning: () => set({ storageWarning: false }),
     }
