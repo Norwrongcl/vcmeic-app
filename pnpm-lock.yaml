@@ -150,9 +150,6 @@ importers:
       '@faker-js/faker':
         specifier: ^10.4.0
         version: 10.4.0
-      '@rolldown/binding-darwin-arm64':
-        specifier: 1.0.0-rc.15
-        version: 1.0.0-rc.15
       '@tanstack/eslint-plugin-query':
         specifier: ^5.99.0
         version: 5.99.0(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.3)
@@ -4804,7 +4801,8 @@ snapshots:
   '@rolldown/binding-android-arm64@1.0.0-rc.15':
     optional: true
 
-  '@rolldown/binding-darwin-arm64@1.0.0-rc.15': {}
+  '@rolldown/binding-darwin-arm64@1.0.0-rc.15':
+    optional: true
 
   '@rolldown/binding-darwin-x64@1.0.0-rc.15':
     optional: true
