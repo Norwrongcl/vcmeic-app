@@ -1,8 +1,15 @@
 import { Link } from '@tanstack/react-router'
+import {
+  CircleCheck,
+  ClipboardList,
+  FolderKanban,
+  OctagonAlert,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/features/core/model/app-store'
+import { HomeCharts } from '../components/home-charts'
 import { ManagementOverview } from '../components/management-overview'
-import { EmptyState, Metric, Panel, StateBadge } from '../components/primitives'
+import { EmptyState, Panel, StateBadge } from '../components/primitives'
 import { VcmShell } from '../components/shell'
 import { ROLE_LABELS } from '../model/catalogs'
 import { buildDashboard } from '../model/dashboard'
@@ -20,13 +27,13 @@ export function VcmHomePage() {
   const priorities = sortedPriorities(data, actor).slice(0, 3)
   return (
     <VcmShell
-      title={`Inicio · ${ROLE_LABELS[actor.role]}`}
+      title='Tu gestión, de un vistazo'
       description={
         executive
           ? 'Visión ejecutiva de portafolios, presupuesto, metas, convenios y decisiones estratégicas.'
           : leadership
             ? 'Gobierno y control: prioridades, presupuesto, indicadores, observaciones y excepciones.'
-            : 'Bandeja de trabajo: agenda, vencimientos, bloqueos, evidencias y decisiones pendientes.'
+            : 'Iniciativas, metas y avance de tu equipo. Detecta pendientes y decide dónde enfocar el trabajo.'
       }
       actions={
         canOperate(actor.role) ? (
@@ -37,9 +44,80 @@ export function VcmHomePage() {
       }
     >
       <p className='text-xs text-muted-foreground'>
-        Fecha de corte: {d.today} · Datos locales de demostración · Hermes opera
-        por WhatsApp y Telegram; no hay síntesis automática conectada.
+        Vista de {ROLE_LABELS[actor.role]} · Actualizado al {d.today} · Datos de
+        demostración
       </p>
+      <div className='grid grid-cols-2 gap-3 xl:grid-cols-4'>
+        {[
+          {
+            label: 'Iniciativas del portafolio',
+            value: d.cases.length,
+            note: 'Según visibilidad del rol',
+            icon: FolderKanban,
+            tone: 'text-indigo-600 dark:text-indigo-400',
+            background: 'bg-indigo-50 dark:bg-indigo-950/50',
+          },
+          {
+            label: executive
+              ? 'Elegibles y validadas'
+              : 'Expedientes con pendientes',
+            value: executive
+              ? d.cases.filter((c) => eligible(data, c.id)).length
+              : d.quality.length,
+            note: executive
+              ? 'Con evidencia revisada'
+              : 'Faltantes por resolver',
+            icon: CircleCheck,
+            tone: 'text-emerald-600 dark:text-emerald-400',
+            background: 'bg-emerald-50 dark:bg-emerald-950/50',
+          },
+          {
+            label: 'Decisiones pendientes',
+            value: d.pendingDecisions.length,
+            note: 'Por revisar y aprobar',
+            icon: ClipboardList,
+            tone: 'text-sky-600 dark:text-sky-400',
+            background: 'bg-sky-50 dark:bg-sky-950/50',
+          },
+          {
+            label: executive
+              ? 'Portafolios con iniciativas'
+              : 'Bloqueos operativos',
+            value: executive
+              ? d.portfolios.length
+              : d.pendingTasks.filter((t) => t.blocked).length,
+            note: executive
+              ? 'Con trabajo registrado'
+              : `${d.pendingTasks.length} tareas activas vinculadas`,
+            icon: OctagonAlert,
+            tone: 'text-amber-600 dark:text-amber-400',
+            background: 'bg-amber-50 dark:bg-amber-950/50',
+          },
+        ].map((metric) => (
+          <div
+            key={metric.label}
+            className='relative min-w-0 rounded-2xl border bg-card p-4 shadow-sm sm:p-5'
+          >
+            <metric.icon
+              aria-hidden='true'
+              className={`absolute top-4 right-4 size-8 rounded-lg p-1.5 ${metric.tone} ${metric.background}`}
+            />
+            <p className='min-h-10 pr-9 text-xs font-medium text-muted-foreground'>
+              {metric.label}
+            </p>
+            <p className='mt-1 text-3xl font-semibold tracking-tight tabular-nums'>
+              {metric.value}
+            </p>
+            <p className='mt-1 text-xs text-muted-foreground'>{metric.note}</p>
+          </div>
+        ))}
+      </div>
+      <HomeCharts
+        dashboard={d}
+        government={['direction', 'leadership', 'coordination'].includes(
+          actor.role
+        )}
+      />
       <Panel
         title='Siguiente paso'
         description='Accesos a pendientes comprobables; revisa las prioridades declaradas antes de actuar.'
@@ -65,49 +143,7 @@ export function VcmHomePage() {
           </Link>
         </div>
       </Panel>
-      <div className='grid grid-cols-2 gap-3 xl:grid-cols-4'>
-        <Metric
-          label='Iniciativas del portafolio'
-          value={d.cases.length}
-          note='Según visibilidad del rol'
-        />
-        <Metric
-          label={
-            executive ? 'Elegibles y validadas' : 'Expedientes con pendientes'
-          }
-          value={
-            executive
-              ? d.cases.filter((c) => eligible(data, c.id)).length
-              : d.quality.length
-          }
-          note={
-            executive
-              ? 'Con datos reales y evidencia revisada'
-              : 'Faltantes y controles por resolver'
-          }
-        />
-        <Metric
-          label='Decisiones pendientes'
-          value={d.pendingDecisions.length}
-          note='Mandatos, excepciones y presupuesto'
-        />
-        <Metric
-          label={
-            executive ? 'Portafolios con iniciativas' : 'Bloqueos operativos'
-          }
-          value={
-            executive
-              ? d.portfolios.length
-              : d.pendingTasks.filter((t) => t.blocked).length
-          }
-          note={
-            executive
-              ? 'Avance detallado a continuación'
-              : `${d.pendingTasks.length} tareas activas vinculadas`
-          }
-        />
-      </div>
-      {(executive || leadership) && <ManagementOverview compact />}
+
       <div className='grid gap-6 lg:grid-cols-2'>
         <Panel
           title={
@@ -235,7 +271,7 @@ export function VcmHomePage() {
             )}
         </Panel>
       </div>
-      {!executive && !leadership && <ManagementOverview compact />}
+      <ManagementOverview compact />
     </VcmShell>
   )
 }
