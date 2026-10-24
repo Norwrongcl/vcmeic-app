@@ -2,8 +2,10 @@ import type { ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ArrowUpRight, ChartNoAxesCombined, Target } from 'lucide-react'
 import { formatClp } from '@/features/events/model/formatters'
+import { campaignIsApproved, contentIsApproved } from '../model/campaign-rules'
 import type { buildDashboard } from '../model/dashboard'
 import { PLAN_STATES } from '../model/planning'
+import type { VcmData } from '../model/types'
 import { EmptyState } from './primitives'
 
 type Dashboard = ReturnType<typeof buildDashboard>
@@ -127,7 +129,7 @@ export function HomeCharts({
       <div className='grid gap-5 xl:grid-cols-[1fr_1.35fr]'>
         <ChartPanel
           title='Estado de las iniciativas'
-          description='Distribución por etapa de ejecución · expedientes visibles para tu rol'
+          description='Etapas de ejecución · según tu rol'
         >
           <div className='flex flex-col items-center gap-6 sm:flex-row sm:justify-around'>
             <div className='relative size-48 shrink-0'>
@@ -189,15 +191,14 @@ export function HomeCharts({
           </div>
           {!d.cases.length && (
             <p className='mt-4 text-center text-xs text-muted-foreground'>
-              Las iniciativas aparecerán aquí cuando tengas expedientes
-              visibles.
+              Sin iniciativas visibles.
             </p>
           )}
         </ChartPanel>
 
         <ChartPanel
           title='Iniciativas por portafolio'
-          description='Compara el volumen de trabajo y las iniciativas ejecutadas en cada portafolio.'
+          description='Ejecutadas frente al total de cada portafolio'
         >
           <div className='mb-5 flex flex-wrap gap-4 text-xs text-muted-foreground'>
             <span className='flex items-center gap-2'>
@@ -254,7 +255,7 @@ export function HomeCharts({
       >
         <ChartPanel
           title={`Metas e indicadores · ${d.year}`}
-          description='Avance frente a las metas definidas. Solo se suman aportes elegibles y validados.'
+          description='Aportes elegibles y validados / meta anual'
         >
           <div className='space-y-6'>
             {d.indicators.map((i, index) => (
@@ -268,10 +269,7 @@ export function HomeCharts({
               />
             ))}
             {!d.indicators.length && (
-              <EmptyState>
-                No hay metas definidas para este año. Puedes revisarlas en
-                Reportes.
-              </EmptyState>
+              <EmptyState>Sin metas para este año.</EmptyState>
             )}
           </div>
           <Link
@@ -284,7 +282,7 @@ export function HomeCharts({
         {government && (
           <ChartPanel
             title='Ejecución del presupuesto'
-            description='Gastos registrados frente al presupuesto planificado de los proyectos visibles.'
+            description='Gastos / presupuesto planificado'
           >
             <div className='flex items-end justify-between gap-3'>
               <div>
@@ -349,10 +347,10 @@ export function HomeCharts({
           </ChartPanel>
         )}
       </div>
-      {government && (
+      {government && objectives.length > 0 && (
         <ChartPanel
           title={`Objetivos del plan anual · ${d.year}`}
-          description='Cada objetivo conserva su propia meta: ejecución y validación se miden por separado.'
+          description='Avance por objetivo · ejecución o validación'
         >
           {d.plans.map((plan) => (
             <div key={plan.id} className='mb-6 last:mb-0'>
@@ -387,9 +385,7 @@ export function HomeCharts({
             </div>
           ))}
           {!objectives.length && (
-            <EmptyState>
-              El plan anual aún no tiene objetivos visibles para este período.
-            </EmptyState>
+            <EmptyState>Sin objetivos visibles para este año.</EmptyState>
           )}
           <Link
             to='/portfolio'
@@ -400,5 +396,192 @@ export function HomeCharts({
         </ChartPanel>
       )}
     </div>
+  )
+}
+
+function StatusRing({
+  label,
+  items,
+}: {
+  label: string
+  items: { name: string; value: number; color: string }[]
+}) {
+  const total = items.reduce((sum, item) => sum + item.value, 0)
+  const stops = items.map((item, index) => {
+    const start = items
+      .slice(0, index)
+      .reduce((sum, entry) => sum + entry.value, 0)
+    return `${item.color} ${(start / total) * 100}% ${((start + item.value) / total) * 100}%`
+  })
+  return (
+    <div className='flex flex-col items-center gap-5'>
+      <div
+        role='img'
+        aria-label={`${label}: ${items.map((i) => `${i.name} ${i.value}`).join(', ')}`}
+        className='relative flex size-36 shrink-0 items-center justify-center rounded-full bg-muted'
+        style={
+          total
+            ? { background: `conic-gradient(${stops.join(',')})` }
+            : undefined
+        }
+      >
+        <div className='absolute inset-3 rounded-full bg-card' />
+        <div className='relative text-center'>
+          <p className='text-3xl font-semibold tabular-nums'>{total}</p>
+          <p className='text-xs text-muted-foreground'>{label}</p>
+        </div>
+      </div>
+      <ul className='w-full space-y-3 text-xs'>
+        {items.map((item) => (
+          <li key={item.name} className='flex items-center gap-2'>
+            <span
+              className='size-2.5 rounded-full'
+              style={{ backgroundColor: item.color }}
+            />
+            <span className='text-muted-foreground'>{item.name}</span>
+            <span className='ml-auto font-semibold tabular-nums'>
+              {item.value}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+export function HomeOperations({
+  dashboard: d,
+  data,
+}: {
+  dashboard: Dashboard
+  data: VcmData
+}) {
+  const approvedContent = d.contents.filter((c) =>
+    contentIsApproved(data, c)
+  ).length
+  const approvedCampaigns = d.campaigns.filter(campaignIsApproved).length
+  const alerts = [
+    {
+      name: 'Expedientes con faltantes',
+      value: d.quality.length,
+      color: '#6366f1',
+    },
+    { name: 'Iniciativas vencidas', value: d.overdue.length, color: '#f59e0b' },
+    {
+      name: 'Tareas bloqueadas',
+      value: d.pendingTasks.filter((t) => t.blocked).length,
+      color: '#ef4444',
+    },
+    { name: 'Datos en conflicto', value: d.conflicts.length, color: '#0ea5e9' },
+    {
+      name: 'Observaciones abiertas',
+      value: d.observations.length,
+      color: '#8b5cf6',
+    },
+    {
+      name: 'Decisiones pendientes',
+      value: d.pendingDecisions.length,
+      color: '#10b981',
+    },
+  ]
+  const max = Math.max(1, ...alerts.map((a) => a.value))
+  return (
+    <section aria-label='Seguimiento operativo' className='space-y-4'>
+      <h2 className='text-lg font-semibold tracking-tight'>
+        Seguimiento operativo
+      </h2>
+      <div className='grid gap-5 sm:grid-cols-2 xl:grid-cols-3'>
+        <ChartPanel
+          className='sm:col-span-2 xl:col-span-1'
+          title='Pendientes de atención'
+          description='Conteos por categoría · pueden coincidir'
+        >
+          <div className='space-y-4'>
+            {alerts.map((a) => (
+              <div key={a.name}>
+                <div className='mb-1.5 flex justify-between gap-2 text-xs'>
+                  <span className='text-muted-foreground'>{a.name}</span>
+                  <span className='font-semibold tabular-nums'>{a.value}</span>
+                </div>
+                <div
+                  role='img'
+                  aria-label={`${a.name}: ${a.value}`}
+                  className='h-2.5 overflow-hidden rounded-full bg-muted'
+                >
+                  <div
+                    className='h-full rounded-full'
+                    style={{
+                      width: `${(a.value / max) * 100}%`,
+                      backgroundColor: a.color,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <Link
+            to='/control'
+            className='mt-5 inline-flex items-center gap-1 text-xs font-medium text-primary'
+          >
+            Ir a control <ArrowUpRight className='size-3.5' />
+          </Link>
+        </ChartPanel>
+        <ChartPanel
+          title='Comunicaciones'
+          description='Aprobación de contenidos'
+        >
+          <StatusRing
+            label='contenidos'
+            items={[
+              { name: 'Aprobados', value: approvedContent, color: '#10b981' },
+              {
+                name: 'Por aprobar',
+                value: d.contents.length - approvedContent,
+                color: '#f59e0b',
+              },
+            ]}
+          />
+          <div className='mt-5 border-t pt-4'>
+            {d.campaigns.length ? (
+              <GoalBar
+                title='Estrategias aprobadas'
+                value={approvedCampaigns}
+                target={d.campaigns.length}
+                note='campañas'
+                color='#0ea5e9'
+              />
+            ) : (
+              <p className='text-xs text-muted-foreground'>
+                Sin campañas registradas.
+              </p>
+            )}
+          </div>
+          <Link
+            to='/portfolio'
+            className='mt-5 inline-flex items-center gap-1 text-xs font-medium text-primary'
+          >
+            Ver campañas <ArrowUpRight className='size-3.5' />
+          </Link>
+        </ChartPanel>
+        <ChartPanel title='Convenios' description='Vigencia documental'>
+          <StatusRing
+            label='convenios'
+            items={['Vigente', 'Próximo', 'Vencido', 'Cancelado'].map(
+              (status, index) => ({
+                name: status,
+                value: d.agreements.filter((a) => a.status === status).length,
+                color: ['#10b981', '#0ea5e9', '#f59e0b', '#94a3b8'][index],
+              })
+            )}
+          />
+          <Link
+            to='/agreements'
+            className='mt-5 inline-flex items-center gap-1 text-xs font-medium text-primary'
+          >
+            Ver convenios <ArrowUpRight className='size-3.5' />
+          </Link>
+        </ChartPanel>
+      </div>
+    </section>
   )
 }

@@ -7,13 +7,11 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/features/core/model/app-store'
-import { HomeCharts } from '../components/home-charts'
-import { ManagementOverview } from '../components/management-overview'
-import { EmptyState, Panel, StateBadge } from '../components/primitives'
+import { HomeCharts, HomeOperations } from '../components/home-charts'
+import { EmptyState, StateBadge } from '../components/primitives'
 import { VcmShell } from '../components/shell'
 import { ROLE_LABELS } from '../model/catalogs'
 import { buildDashboard } from '../model/dashboard'
-import { decisionAuthority } from '../model/decisions'
 import { sortedPriorities } from '../model/planning'
 import { useVcm } from '../model/use-vcm'
 import { canOperate, eligible } from '../model/workflow'
@@ -118,160 +116,76 @@ export function VcmHomePage() {
           actor.role
         )}
       />
-      <Panel
-        title='Siguiente paso'
-        description='Accesos a pendientes comprobables; revisa las prioridades declaradas antes de actuar.'
-      >
-        <div className='flex flex-wrap gap-3 text-sm'>
-          <Link
-            to='/control'
-            className='rounded border p-3 text-primary underline'
-          >
-            Revisar {d.quality.length} expedientes con faltantes
-          </Link>
-          <Link
-            to='/portfolio'
-            className='rounded border p-3 text-primary underline'
-          >
-            Abrir portafolio, plan y decisiones
-          </Link>
-          <Link
-            to='/reports'
-            className='rounded border p-3 text-primary underline'
-          >
-            Consultar reportes y registros sin fecha
-          </Link>
-        </div>
-      </Panel>
-
-      <div className='grid gap-6 lg:grid-cols-2'>
-        <Panel
-          title={
-            executive
-              ? 'Iniciativas estratégicas prioritarias'
-              : 'Prioridades del día'
-          }
-          description='Orden por prioridad operativa declarada; luego pertinencia, urgencia y fecha de término. Evaluación humana, sin puntajes institucionales automáticos.'
-        >
-          {priorities.map((c) => (
-            <Link
-              to='/portfolio/$caseId'
-              params={{ caseId: c.id }}
-              key={c.id}
-              className='flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4 hover:bg-accent'
-            >
-              <div>
-                <p className='font-medium'>{c.name}</p>
-                <p className='mt-1 text-xs text-muted-foreground'>
-                  {c.responsible} · Prioridad{' '}
-                  {c.priority === 'high'
-                    ? 'alta'
-                    : c.priority === 'low'
-                      ? 'baja'
-                      : 'media'}{' '}
-                  · Término:{' '}
-                  {c.fields.endsAt?.value.slice(0, 10) || 'Pendiente'}
-                </p>
-              </div>
-              <StateBadge state={c.state} />
+      <HomeOperations dashboard={d} data={data} />
+      <div className='grid gap-5 lg:grid-cols-2'>
+        <section className='min-w-0 rounded-2xl border bg-card p-5'>
+          <div className='mb-4 flex items-center justify-between gap-3'>
+            <h2 className='font-semibold'>Prioridades</h2>
+            <Link to='/portfolio' className='text-xs font-medium text-primary'>
+              Ver portafolio ↗
             </Link>
-          ))}
-          {!priorities.length && (
-            <EmptyState>No hay expedientes abiertos visibles.</EmptyState>
-          )}
-        </Panel>
-        <Panel
-          title='Decisiones y aprobaciones pendientes'
-          description='Las decisiones de presupuesto requieren Dirección; las excepciones escaladas, Jefatura. El fundamento se conserva en el expediente.'
-        >
-          {d.pendingDecisions.slice(0, 3).map((v) => (
-            <Link
-              key={v.id}
-              to='/portfolio/$caseId'
-              params={{ caseId: v.caseId }}
-              className='rounded-lg border p-4 text-sm hover:bg-accent'
-            >
-              <strong>{v.title}</strong>
-              <p className='mt-1 text-xs text-muted-foreground'>
-                {data.cases[v.caseId].name} · {v.reason}
-              </p>
-              <p className='mt-2 text-xs'>
-                Autoridad requerida:{' '}
-                {
-                  {
-                    coordination: 'Coordinación',
-                    leadership: 'Jefatura',
-                    direction: 'Dirección',
-                  }[decisionAuthority(v)]
-                }{' '}
-                · Solicitada por {v.requestedBy.name}
-              </p>
-            </Link>
-          ))}
-          {!d.pendingDecisions.length && (
-            <EmptyState>No hay decisiones pendientes.</EmptyState>
-          )}
-        </Panel>
-        <Panel
-          title='Próximas iniciativas y eventos'
-          description='Fechas futuras declaradas. Calendar permanece desconectado.'
-        >
-          {d.upcoming.slice(0, 3).map((c) => (
-            <Link
-              key={c.id}
-              to='/portfolio/$caseId'
-              params={{ caseId: c.id }}
-              className='flex justify-between gap-3 rounded border p-3 text-sm hover:bg-accent'
-            >
-              <span>{c.name}</span>
-              <span className='shrink-0'>
-                {c.fields.startsAt.value.slice(0, 10)}
-              </span>
-            </Link>
-          ))}
-          {!d.upcoming.length && (
-            <EmptyState>No hay próximas fechas informadas.</EmptyState>
-          )}
-        </Panel>
-        <Panel
-          title='Vencimientos y bloqueos'
-          description='Fechas de término pasadas y tareas pendientes vencidas o bloqueadas. No se envían recordatorios externos.'
-        >
-          {d.overdue.slice(0, 3).map((c) => (
-            <Link
-              key={c.id}
-              to='/portfolio/$caseId'
-              params={{ caseId: c.id }}
-              className='rounded border p-3 text-sm hover:bg-accent'
-            >
-              {c.name} · Término vencido: {c.fields.endsAt.value.slice(0, 10)}
-            </Link>
-          ))}
-          {d.pendingTasks
-            .filter(
-              (t) =>
-                t.blocked || (t.dueDate && t.dueDate.slice(0, 10) < d.today)
-            )
-            .slice(0, 3)
-            .map((t) => (
-              <p key={t.id} className='rounded border p-3 text-sm'>
-                {t.title} · {t.assignee || 'Sin responsable'} ·{' '}
-                {t.blocked ? 'Bloqueada' : 'Vencida'} ·{' '}
-                {t.dueDate?.slice(0, 10)}
-              </p>
+          </div>
+          <div className='divide-y'>
+            {priorities.map((c) => (
+              <Link
+                key={c.id}
+                to='/portfolio/$caseId'
+                params={{ caseId: c.id }}
+                className='flex items-center justify-between gap-3 py-3 text-sm hover:text-primary'
+              >
+                <span className='min-w-0'>
+                  <span className='block font-medium'>{c.name}</span>
+                  <span className='mt-1 block text-xs text-muted-foreground'>
+                    {c.responsible}
+                  </span>
+                </span>
+                <StateBadge state={c.state} />
+              </Link>
             ))}
-          {!d.overdue.length &&
-            !d.pendingTasks.some(
-              (t) =>
-                t.blocked || (t.dueDate && t.dueDate.slice(0, 10) < d.today)
-            ) && (
-              <EmptyState>
-                No hay vencimientos ni bloqueos detectados.
-              </EmptyState>
+            {!priorities.length && (
+              <EmptyState>Sin iniciativas pendientes.</EmptyState>
             )}
-        </Panel>
+          </div>
+        </section>
+        <section className='min-w-0 rounded-2xl border bg-card p-5'>
+          <div className='mb-4 flex items-center justify-between gap-3'>
+            <h2 className='font-semibold'>Próximas fechas</h2>
+            <span className='text-xs text-muted-foreground'>
+              {d.upcoming.length} iniciativas
+            </span>
+          </div>
+          <div className='divide-y'>
+            {d.upcoming.slice(0, 3).map((c) => (
+              <Link
+                key={c.id}
+                to='/portfolio/$caseId'
+                params={{ caseId: c.id }}
+                className='flex items-center gap-3 py-3 text-sm hover:text-primary'
+              >
+                <span className='flex size-12 shrink-0 flex-col items-center justify-center rounded-xl bg-primary/10 text-primary'>
+                  <span className='text-lg font-semibold'>
+                    {c.fields.startsAt.value.slice(8, 10)}
+                  </span>
+                  <span className='text-[10px]'>
+                    {new Intl.DateTimeFormat('es-CL', {
+                      month: 'short',
+                      timeZone: 'UTC',
+                    }).format(
+                      new Date(
+                        c.fields.startsAt.value.slice(0, 10) + 'T12:00:00Z'
+                      )
+                    )}
+                  </span>
+                </span>
+                <span className='font-medium'>{c.name}</span>
+              </Link>
+            ))}
+            {!d.upcoming.length && (
+              <EmptyState>Sin próximas fechas.</EmptyState>
+            )}
+          </div>
+        </section>
       </div>
-      <ManagementOverview compact />
     </VcmShell>
   )
 }

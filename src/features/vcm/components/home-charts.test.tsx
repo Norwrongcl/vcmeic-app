@@ -10,7 +10,7 @@ import { EMPTY_APP_DATA } from '@/features/core/model/seed'
 import { buildDashboard } from '../model/dashboard'
 import { migrateVcmData } from '../model/migration'
 import type { Actor } from '../model/types'
-import { HomeCharts } from './home-charts'
+import { HomeCharts, HomeOperations } from './home-charts'
 
 const actor: Actor = {
   id: 'demo-coordination',
@@ -27,7 +27,13 @@ function fixture() {
 function show(dashboard: ReturnType<typeof buildDashboard>, government = true) {
   const root = createRootRoute({
     component: () => (
-      <HomeCharts dashboard={dashboard} government={government} />
+      <>
+        <HomeCharts dashboard={dashboard} government={government} />
+        <HomeOperations
+          dashboard={dashboard}
+          data={migrateVcmData(EMPTY_APP_DATA)}
+        />
+      </>
     ),
   })
   const router = createRouter({
@@ -126,4 +132,25 @@ it('keeps charts and long portfolio labels within a mobile viewport', async () =
   } finally {
     await page.viewport(1280, 720)
   }
+})
+
+it('shows operational charts without disclosure controls, including empty communications', async () => {
+  const screen = await show(fixture())
+  await expect
+    .element(
+      screen.getByRole('img', {
+        name: 'contenidos: Aprobados 0, Por aprobar 0',
+        exact: true,
+      })
+    )
+    .toBeInTheDocument()
+  await expect
+    .element(screen.getByRole('img', { name: /convenios: Vigente 0/ }))
+    .toBeInTheDocument()
+  await expect
+    .element(
+      screen.getByRole('img', { name: 'Tareas bloqueadas: 0', exact: true })
+    )
+    .toBeInTheDocument()
+  expect(document.querySelectorAll('details, summary')).toHaveLength(0)
 })
